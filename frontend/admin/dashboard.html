@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Hostel Complaint Management System</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo-icon" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <div class="sidebar-brand-text">
+          <h2>HostelCare</h2>
+          <span>Admin Portal</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Operations</div>
+        <a href="dashboard.html" class="nav-link active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"/>
+            <rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/>
+          </svg>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="complaints.html" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+          <span>All Complaints</span>
+        </a>
+
+        <a href="assign.html" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="8.5" cy="7" r="4"/>
+            <line x1="20" y1="8" x2="20" y2="14"/>
+            <line x1="23" y1="11" x2="17" y2="11"/>
+          </svg>
+          <span>Assign Complaints</span>
+        </a>
+
+        <div class="nav-section-title">Directory & Reports</div>
+        <a href="students.html" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          <span>Students</span>
+        </a>
+
+        <a href="staff.html" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+          </svg>
+          <span>Staff</span>
+        </a>
+
+        <a href="reports.html" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="20" x2="18" y2="10"/>
+            <line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+          <span>Reports & Analytics</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-mini-card">
+          <div class="user-avatar-circle js-user-avatar" style="border-color: #ef4444;">AD</div>
+          <div class="user-meta-info">
+            <div class="user-meta-name js-user-name">Chief Warden</div>
+            <div class="user-meta-role">Administrator</div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn-sidebar-logout" data-action="reset-data" title="Reset sample test data" style="flex: 1;">
+            <span>Reset Demo</span>
+          </button>
+          <button class="btn-sidebar-logout" data-action="logout" style="flex: 1;">
+            <span>Logout</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-wrapper">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="hamburger-btn" aria-label="Open Navigation">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
+          <div class="page-heading-title">Hostel Administration Dashboard</div>
+        </div>
+
+        <div class="topbar-right">
+          <div class="current-date-badge">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            <span class="js-current-date">Today</span>
+          </div>
+          <span class="badge badge-role-admin">Admin</span>
+          <button class="btn btn-secondary btn-sm" data-action="logout">
+            Logout
+          </button>
+        </div>
+      </header>
+
+      <main class="content-body">
+        <!-- Welcome Banner -->
+        <div class="welcome-banner" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+          <div>
+            <h1>Hostel Management Command Center</h1>
+            <p>Real-time oversight of hostel facilities, complaint tracking, technician assignments, and statistics.</p>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="assign.html" class="btn btn-primary" style="font-weight: 600;">
+              Assign Pending Tasks
+            </a>
+            <a href="reports.html" class="btn btn-secondary">
+              View Reports
+            </a>
+          </div>
+        </div>
+
+        <!-- Top Statistics Grid -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon-wrapper stat-icon-primary">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              </svg>
+            </div>
+            <div class="stat-details">
+              <div class="stat-value" id="stat-total-complaints">0</div>
+              <div class="stat-label">Total Complaints</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon-wrapper stat-icon-warning">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+            </div>
+            <div class="stat-details">
+              <div class="stat-value" id="stat-pending">0</div>
+              <div class="stat-label">Pending Review</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon-wrapper stat-icon-info">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="8.5" cy="7" r="4"/>
+              </svg>
+            </div>
+            <div class="stat-details">
+              <div class="stat-value" id="stat-assigned">0</div>
+              <div class="stat-label">Assigned Staff</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon-wrapper stat-icon-orange">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 4 23 10 17 10"/>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+              </svg>
+            </div>
+            <div class="stat-details">
+              <div class="stat-value" id="stat-in-progress">0</div>
+              <div class="stat-label">In Progress</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon-wrapper stat-icon-success">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+            </div>
+            <div class="stat-details">
+              <div class="stat-value" id="stat-resolved">0</div>
+              <div class="stat-label">Resolved</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Distributions Row -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+          <!-- Status Distribution -->
+          <div class="card" style="margin-bottom: 0;">
+            <div class="card-header">
+              <div class="card-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 14 14"/>
+                </svg>
+                <span>Status Breakdown</span>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="dist-item">
+                <div class="dist-header">
+                  <span>Pending</span>
+                  <span id="label-status-pending">0</span>
+                </div>
+                <div class="dist-bar-bg">
+                  <div id="bar-status-pending" class="dist-bar-fill dist-bar-pending" style="width: 0%;"></div>
+                </div>
+              </div>
+
+              <div class="dist-item">
+                <div class="dist-header">
+                  <span>Assigned</span>
+                  <span id="label-status-assigned">0</span>
+                </div>
+                <div class="dist-bar-bg">
+                  <div id="bar-status-assigned" class="dist-bar-fill dist-bar-assigned" style="width: 0%;"></div>
+                </div>
+              </div>
+
+              <div class="dist-item">
+                <div class="dist-header">
+                  <span>In Progress</span>
+                  <span id="label-status-progress">0</span>
+                </div>
+                <div class="dist-bar-bg">
+                  <div id="bar-status-progress" class="dist-bar-fill dist-bar-progress" style="width: 0%;"></div>
+                </div>
+              </div>
+
+              <div class="dist-item">
+                <div class="dist-header">
+                  <span>Resolved</span>
+                  <span id="label-status-resolved">0</span>
+                </div>
+                <div class="dist-bar-bg">
+                  <div id="bar-status-resolved" class="dist-bar-fill dist-bar-resolved" style="width: 0%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Category Distribution -->
+          <div class="card" style="margin-bottom: 0;">
+            <div class="card-header">
+              <div class="card-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
+                <span>Category Distribution</span>
+              </div>
+            </div>
+            <div class="card-body" id="category-distribution-container">
+              <!-- Populated dynamically by admin.js -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Complaints Table -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              </svg>
+              <span>Recent Facility Complaints</span>
+            </div>
+            <a href="complaints.html" class="btn btn-secondary btn-sm">View All Complaints &rarr;</a>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Complaint ID</th>
+                  <th>Student & Room</th>
+                  <th>Category</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th>Assigned Staff</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="admin-recent-tbody">
+                <!-- Rendered by admin.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Admin View Complaint Modal -->
+  <div class="modal-overlay" id="admin-view-modal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">Complaint Inspection</h3>
+        <button class="modal-close-btn" data-close-modal aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body" id="admin-view-modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Admin Assign Staff Modal -->
+  <div class="modal-overlay" id="admin-assign-modal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">Assign Maintenance Technician</h3>
+        <button class="modal-close-btn" data-close-modal aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body" id="admin-assign-modal-body"></div>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/data.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/complaints.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/app.js"></script>
+  <script src="../js/admin.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      AdminApp.initDashboard();
+    });
+  </script>
+</body>
+</html>

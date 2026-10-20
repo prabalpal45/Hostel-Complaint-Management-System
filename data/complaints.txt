@@ -1,0 +1,1 @@
+C001,S001,B204,Electrical,Fan speed is too low,RESOLVED,HIGH,ST001,

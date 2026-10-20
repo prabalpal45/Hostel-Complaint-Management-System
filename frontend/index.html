@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Hostel Complaint & Maintenance Management System</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/forms.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+  <div class="auth-wrapper">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-logo">
+          <!-- Building / Hostel SVG Icon -->
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"/>
+          </svg>
+        </div>
+        <h1 class="auth-title">HostelCare Portal</h1>
+        <p class="auth-subtitle">Hostel Complaint & Maintenance Management System</p>
+      </div>
+
+      <div class="auth-body">
+        <!-- Error / Info Alert Box -->
+        <div id="login-alert" class="alert-box alert-danger" style="display: none;"></div>
+
+        <form id="login-form" novalidate>
+          <!-- Role Selection Grid -->
+          <div class="form-group">
+            <label class="form-label">Select Your Role <span class="required">*</span></label>
+            <div class="role-selector-grid">
+              <label class="role-radio-label selected" id="role-label-student">
+                <input type="radio" name="role" value="STUDENT" checked>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                  <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                </svg>
+                <span>Student</span>
+              </label>
+
+              <label class="role-radio-label" id="role-label-staff">
+                <input type="radio" name="role" value="STAFF">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                </svg>
+                <span>Staff</span>
+              </label>
+
+              <label class="role-radio-label" id="role-label-admin">
+                <input type="radio" name="role" value="ADMIN">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                <span>Admin</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Username Input -->
+          <div class="form-group" id="group-username">
+            <label class="form-label" for="username">Username <span class="required">*</span></label>
+            <input type="text" id="username" class="form-control" placeholder="Enter username (e.g., student01)" autocomplete="username" required>
+            <div class="form-error" id="err-username">Please enter your username.</div>
+          </div>
+
+          <!-- Password Input with Show/Hide -->
+          <div class="form-group" id="group-password">
+            <label class="form-label" for="password">Password <span class="required">*</span></label>
+            <div class="input-group">
+              <input type="password" id="password" class="form-control" placeholder="Enter your password" autocomplete="current-password" required>
+              <button type="button" class="input-action-btn" id="btn-toggle-password" title="Show or hide password" aria-label="Toggle password visibility">
+                <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+            <div class="form-error" id="err-password">Please enter your password.</div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="form-group mt-4">
+            <button type="submit" id="btn-login" class="btn btn-primary" style="width: 100%;">
+              Sign In to Portal
+            </button>
+          </div>
+        </form>
+
+        <!-- Quick Demo Credentials for Viva -->
+        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px dashed var(--gray-light);">
+          <div style="font-size: 0.72rem; text-transform: uppercase; font-weight: 700; color: var(--gray); margin-bottom: 0.5rem; text-align: center;">
+            Demo Quick-Fill for Evaluation
+          </div>
+          <div style="display: flex; gap: 0.4rem; justify-content: center; flex-wrap: wrap;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="fillDemo('student01', '1234', 'STUDENT')">
+              👨‍🎓 Student
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="fillDemo('staff01', '1234', 'STAFF')">
+              🛠️ Staff
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="fillDemo('admin', 'admin123', 'ADMIN')">
+              🛡️ Admin
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="auth-footer">
+        New hosteller? <a href="register.html" class="fw-semibold">Register Student Account</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shared Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ui.js"></script>
+
+  <script>
+    // Role selection styling
+    document.querySelectorAll('input[name="role"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        document.querySelectorAll('.role-radio-label').forEach(lbl => lbl.classList.remove('selected'));
+        radio.closest('.role-radio-label').classList.add('selected');
+      });
+    });
+
+    // Toggle password visibility
+    const toggleBtn = document.getElementById('btn-toggle-password');
+    const passwordInput = document.getElementById('password');
+    toggleBtn.addEventListener('click', () => {
+      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordInput.setAttribute('type', type);
+      toggleBtn.innerHTML = type === 'text' 
+        ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`
+        : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+    });
+
+    // Demo Fill Helper
+    function fillDemo(username, password, role) {
+      document.getElementById('username').value = username;
+      document.getElementById('password').value = password;
+      const radio = document.querySelector(`input[name="role"][value="${role}"]`);
+      if (radio) {
+        radio.checked = true;
+        document.querySelectorAll('.role-radio-label').forEach(lbl => lbl.classList.remove('selected'));
+        radio.closest('.role-radio-label').classList.add('selected');
+      }
+      clearErrors();
+    }
+
+    function clearErrors() {
+      document.getElementById('login-alert').style.display = 'none';
+      document.getElementById('group-username').classList.remove('has-error');
+      document.getElementById('group-password').classList.remove('has-error');
+    }
+
+    // Check query params for alerts
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('logged_out')) {
+      UI.showToast('You have been logged out successfully.', 'info');
+    }
+    if (urlParams.get('registered')) {
+      const alert = document.getElementById('login-alert');
+      alert.className = 'alert-box alert-success';
+      alert.textContent = 'Account created successfully! Please sign in with your credentials.';
+      alert.style.display = 'block';
+    }
+    if (urlParams.get('error') === 'unauthorized') {
+      const alert = document.getElementById('login-alert');
+      alert.className = 'alert-box alert-danger';
+      alert.textContent = 'Please log in to access the hostel portal.';
+      alert.style.display = 'block';
+    }
+
+    // Login Form Submit
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearErrors();
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const role = document.querySelector('input[name="role"]:checked')?.value;
+
+      let hasError = false;
+      if (!username) {
+        document.getElementById('group-username').classList.add('has-error');
+        hasError = true;
+      }
+      if (!password) {
+        document.getElementById('group-password').classList.add('has-error');
+        hasError = true;
+      }
+
+      if (hasError) return;
+
+      const loginBtn = document.getElementById('btn-login');
+      loginBtn.classList.add('is-loading');
+
+      setTimeout(async () => {
+        const result =
+                await Auth.login(
+                        username,
+                        password,
+                        role
+                );
+        loginBtn.classList.remove('is-loading');
+
+        if (result.success) {
+          UI.showToast(`Welcome back, ${result.user.name}!`, 'success');
+          setTimeout(() => {
+            if (role === 'STUDENT') {
+              window.location.href = 'student/dashboard.html';
+            } else if (role === 'STAFF') {
+              window.location.href = 'staff/dashboard.html';
+            } else if (role === 'ADMIN') {
+              window.location.href = 'admin/dashboard.html';
+            }
+          }, 600);
+        } else {
+          const alert = document.getElementById('login-alert');
+          alert.className = 'alert-box alert-danger';
+          alert.textContent = result.message;
+          alert.style.display = 'block';
+        }
+      }, 400);
+    });
+  </script>
+</body>
+</html>

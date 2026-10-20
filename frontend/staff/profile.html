@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Profile - Hostel Complaint Management System</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo-icon" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+          </svg>
+        </div>
+        <div class="sidebar-brand-text">
+          <h2>HostelCare</h2>
+          <span>Staff Portal</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Navigation</div>
+        <a href="dashboard.html" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"/>
+            <rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/>
+          </svg>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="complaints.html" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 11l3 3L22 4"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+          <span>Assigned Complaints</span>
+        </a>
+
+        <a href="profile.html" class="nav-link active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span>Staff Profile</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-mini-card">
+          <div class="user-avatar-circle js-user-avatar">ST</div>
+          <div class="user-meta-info">
+            <div class="user-meta-name js-user-name">Staff Member</div>
+            <div class="user-meta-role js-user-extra">Dept: Electrical</div>
+          </div>
+        </div>
+        <button class="btn-sidebar-logout" data-action="logout">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          <span>Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-wrapper">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="hamburger-btn" aria-label="Open Navigation">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
+          <div class="page-heading-title">Maintenance Staff Profile</div>
+        </div>
+        <div class="topbar-right">
+          <button class="btn btn-secondary btn-sm" data-action="logout">
+            Logout
+          </button>
+        </div>
+      </header>
+
+      <main class="content-body" style="max-width: 900px; margin: 0 auto;">
+        <div class="profile-grid">
+          <!-- Left Card -->
+          <div class="profile-avatar-card">
+            <div class="profile-big-avatar js-user-avatar" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">ST</div>
+            <h3 class="js-user-name" style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.25rem;">Staff Member</h3>
+            <span class="badge badge-role-staff">Maintenance Staff</span>
+            <div style="margin-top: 1.5rem; text-align: left; border-top: 1px solid var(--gray-light); padding-top: 1.25rem;">
+              <div class="detail-label">Assigned Department</div>
+              <div class="detail-value text-primary" id="profile-dept">Electrical</div>
+            </div>
+          </div>
+
+          <!-- Right Card -->
+          <div class="card" style="margin-bottom: 0;">
+            <div class="card-header">
+              <div class="card-title">Technician Profile & Employment Info</div>
+            </div>
+            <div class="card-body">
+              <div class="detail-list">
+                <div class="detail-item">
+                  <div class="detail-label">Staff Employee ID</div>
+                  <div class="detail-value text-primary" id="profile-id">—</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Full Name</div>
+                  <div class="detail-value" id="profile-name">—</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Username</div>
+                  <div class="detail-value" id="profile-username">—</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Work Email</div>
+                  <div class="detail-value" id="profile-email">—</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Contact Phone</div>
+                  <div class="detail-value" id="profile-phone">—</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Role</div>
+                  <div class="detail-value">MAINTENANCE_STAFF</div>
+                </div>
+              </div>
+
+              <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid var(--gray-light);" />
+
+              <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem;">Work Performance Metrics</h4>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; text-align: center;">
+                <div style="background: #f8fafc; padding: 0.85rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                  <div style="font-size: 1.4rem; font-weight: 700; color: var(--primary);" id="profile-assigned-total">0</div>
+                  <div style="font-size: 0.75rem; color: var(--gray);">Total Assigned</div>
+                </div>
+                <div style="background: #f8fafc; padding: 0.85rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                  <div style="font-size: 1.4rem; font-weight: 700; color: var(--warning);" id="profile-active-total">0</div>
+                  <div style="font-size: 0.75rem; color: var(--gray);">Active Work Orders</div>
+                </div>
+                <div style="background: #f8fafc; padding: 0.85rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                  <div style="font-size: 1.4rem; font-weight: 700; color: var(--success);" id="profile-resolved-total">0</div>
+                  <div style="font-size: 0.75rem; color: var(--gray);">Resolved Jobs</div>
+                </div>
+              </div>
+
+              <div class="mt-4" style="text-align: right;">
+                <button class="btn btn-danger btn-sm" data-action="logout">
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/data.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/complaints.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/app.js"></script>
+  <script src="../js/staff.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      StaffApp.initProfile();
+    });
+  </script>
+</body>
+</html>

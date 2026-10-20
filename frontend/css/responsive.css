@@ -1,0 +1,210 @@
+/* ==========================================================================
+   Hostel Complaint & Maintenance Management System
+   Responsive Layout Stylesheet (responsive.css)
+   ========================================================================== */
+
+/* Tablet & Mobile Breakpoint (<= 992px) */
+@media (max-width: 992px) {
+  .sidebar {
+    transform: translateX(-100%);
+    box-shadow: var(--shadow-modal);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .main-wrapper {
+    margin-left: 0;
+  }
+
+  .hamburger-btn {
+    display: inline-flex;
+  }
+
+  /* Overlay backdrop for mobile sidebar */
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 99;
+  }
+
+  .sidebar-backdrop.active {
+    display: block;
+  }
+
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Mobile Breakpoint (<= 768px) */
+@media (max-width: 768px) {
+  .topbar {
+    padding: 0 1rem;
+  }
+
+  .content-body {
+    padding: 1rem;
+  }
+
+  .welcome-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  .detail-list {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-item-full {
+    grid-column: span 1;
+  }
+
+  .filter-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-group {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-input-wrapper {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .filter-group .form-control {
+    width: 100%;
+  }
+
+  .current-date-badge {
+    display: none;
+  }
+
+  .role-selector-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .timeline {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.25rem;
+    padding-left: 2rem;
+  }
+
+  .timeline::before {
+    top: 10px;
+    bottom: 10px;
+    left: 18px;
+    width: 3px;
+    height: auto;
+  }
+
+  .timeline-step {
+    flex-direction: row;
+    gap: 1rem;
+    align-items: center;
+    text-align: left;
+  }
+
+  .timeline-marker {
+    margin-bottom: 0;
+  }
+
+  .modal-container {
+    max-width: 95%;
+    margin: 1rem;
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: 1rem 1.25rem;
+  }
+}
+
+/* Extra Small Devices (<= 480px) */
+@media (max-width: 480px) {
+  .auth-card {
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+  }
+
+  .auth-header {
+    padding: 1.5rem 1.25rem 1rem;
+  }
+
+  .auth-body {
+    padding: 1.25rem;
+  }
+
+  .auth-footer {
+    padding: 1rem 1.25rem;
+  }
+
+  .page-heading-title {
+    font-size: 1rem;
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .modal-footer {
+    flex-direction: column-reverse;
+  }
+
+  .modal-footer .btn {
+    width: 100%;
+  }
+}
+
+/* Print Stylesheet for Reports */
+@media print {
+  .sidebar,
+  .topbar,
+  .btn,
+  .filter-toolbar,
+  #toast-container {
+    display: none !important;
+  }
+
+  .main-wrapper {
+    margin-left: 0 !important;
+  }
+
+  .content-body {
+    padding: 0 !important;
+  }
+
+  .card {
+    border: none !important;
+    box-shadow: none !important;
+  }
+}

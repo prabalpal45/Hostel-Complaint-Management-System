@@ -1,0 +1,14 @@
+S001,Rahul,student01,1234,STUDENT,B204
+S002,Amit,amit,5678,STUDENT,B205
+S100,Rahul,rahul100,1234,STUDENT,B204
+S999,Test Student,testuser,1234,STUDENT,A-101
+TEST001,Test Student,teststudent,1234,STUDENT,A-101
+API001,API Test Student,apitest,1234,STUDENT,B-205
+S004,Rahul Sharma,rahul,1234,STUDENT,B-204
+ST001,Ramesh Kumar,staff01,1234,STAFF,Electrical
+ST002,Suresh Patel,staff02,1234,STAFF,Plumbing
+ST003,Mahesh Singh,staff03,1234,STAFF,Cleaning
+ST004,Vikram Verma,staff04,1234,STAFF,General Maintenance
+ADM001,Chief Warden Admin,admin,admin123,ADMIN,-
+TST_1625,Automated Test Student,user_6760,testpassword,STUDENT,C-101
+S105,Prabal Pal,prabal01,1234,STUDENT,C-302
