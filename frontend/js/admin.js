@@ -16,8 +16,8 @@ const AdminApp = {
   /**
    * Helper to load staff list into cache
    */
-  loadStaffCache: async function () {
-    if (this.cachedStaff.length > 0) return this.cachedStaff;
+  loadStaffCache: async function (forceReload = false) {
+    if (!forceReload && this.cachedStaff.length > 0) return this.cachedStaff;
     try {
       const res = await API.get('/users/staff');
       if (res.success && Array.isArray(res.data)) {
@@ -390,7 +390,7 @@ const AdminApp = {
           <label class="form-label" for="assign-staff-select">Select Maintenance Staff <span class="required">*</span></label>
           <select id="assign-staff-select" class="form-control" required>
             <option value="">-- Choose Staff Member --</option>
-            ${staffList.map(s => `
+            ${staffList.filter(s => (s.status || 'ACTIVE').toUpperCase() !== 'INACTIVE').map(s => `
               <option value="${s.userId}" ${c.assignedStaffId === s.userId ? 'selected' : ''}>
                 ${s.userId} - ${s.name} (${s.department || 'Maintenance'} Dept)
               </option>
@@ -495,7 +495,7 @@ const AdminApp = {
                   <div class="d-flex gap-2">
                     <select id="quick-assign-${c.complaintId}" class="form-control" style="width: auto; padding: 0.35rem 0.5rem; font-size: 0.8rem;">
                       <option value="">-- Choose Staff --</option>
-                      ${staffList.map(s => `<option value="${s.userId}">${s.name} (${s.department || 'Staff'})</option>`).join('')}
+                      ${staffList.filter(s => (s.status || 'ACTIVE').toUpperCase() !== 'INACTIVE').map(s => `<option value="${s.userId}">${s.name} (${s.department || 'Staff'})</option>`).join('')}
                     </select>
                     <button class="btn btn-primary btn-sm" onclick="AdminApp.handleQuickAssign('${c.complaintId}')">
                       Assign
@@ -681,7 +681,7 @@ const AdminApp = {
 
     try {
       const [staffList, complaintsRes] = await Promise.all([
-        this.loadStaffCache(),
+        this.loadStaffCache(true),
         API.get('/complaints')
       ]);
 
@@ -691,15 +691,21 @@ const AdminApp = {
       const render = () => {
         const search = document.getElementById('search-staff')?.value.trim().toLowerCase() || '';
         const deptFilter = document.getElementById('filter-dept')?.value || 'ALL';
+        const statusFilter = document.getElementById('filter-status')?.value || 'ALL';
 
-        const filtered = staffList.filter(s => {
+        const filtered = this.cachedStaff.filter(s => {
           if (deptFilter !== 'ALL' && s.department !== deptFilter) return false;
+          if (statusFilter !== 'ALL') {
+            const currentStatus = (s.status || 'ACTIVE').toUpperCase();
+            if (currentStatus !== statusFilter) return false;
+          }
           if (!search) return true;
           return (
             s.userId.toLowerCase().includes(search) ||
             s.name.toLowerCase().includes(search) ||
             s.username.toLowerCase().includes(search) ||
-            (s.department && s.department.toLowerCase().includes(search))
+            (s.department && s.department.toLowerCase().includes(search)) ||
+            (s.phone && s.phone.toLowerCase().includes(search))
           );
         });
 
@@ -708,27 +714,54 @@ const AdminApp = {
         if (countEl) countEl.textContent = `Total Staff: ${filtered.length}`;
 
         if (tbody) {
-          tbody.innerHTML = filtered.map(s => {
-            const assignedComplaints = complaints.filter(c => c.assignedStaffId === s.userId);
-            const activeTasks = assignedComplaints.filter(c => c.status !== 'RESOLVED').length;
-            return `
+          if (filtered.length === 0) {
+            tbody.innerHTML = `
               <tr>
-                <td><strong>${s.userId}</strong></td>
-                <td>${s.name}</td>
-                <td><code>${s.username}</code></td>
-                <td><span class="badge badge-role-staff">${s.department || 'General'}</span></td>
-                <td>
-                  <strong>${assignedComplaints.length}</strong> total
-                  <span class="text-muted" style="font-size: 0.75rem;">(${activeTasks} active)</span>
-                </td>
-                <td>
-                  <button class="btn btn-secondary btn-sm" onclick="AdminApp.viewStaffDetails('${s.userId}')">
-                    View Workload
-                  </button>
+                <td colspan="8" class="empty-state">
+                  <div class="empty-state-title">No staff members found</div>
+                  <div class="empty-state-text">No staff members match the selected search or filter criteria.</div>
                 </td>
               </tr>
             `;
-          }).join('');
+          } else {
+            tbody.innerHTML = filtered.map(s => {
+              const assignedComplaints = complaints.filter(c => c.assignedStaffId === s.userId);
+              const activeTasks = assignedComplaints.filter(c => c.status !== 'RESOLVED').length;
+              const isActive = (s.status || 'ACTIVE').toUpperCase() === 'ACTIVE';
+
+              return `
+                <tr>
+                  <td><strong>${s.userId}</strong></td>
+                  <td>${s.name}</td>
+                  <td><code>${s.username}</code></td>
+                  <td><span class="badge badge-role-staff">${s.department || 'General'}</span></td>
+                  <td>${s.phone ? s.phone : '<span class="text-muted">—</span>'}</td>
+                  <td>
+                    ${isActive
+                      ? '<span class="badge badge-status-resolved">Active</span>'
+                      : '<span class="badge badge-priority-high">Inactive</span>'}
+                  </td>
+                  <td>
+                    <strong>${assignedComplaints.length}</strong> total
+                    <span class="text-muted" style="font-size: 0.75rem;">(${activeTasks} active)</span>
+                  </td>
+                  <td>
+                    <div class="d-flex gap-2 align-center">
+                      <button class="btn btn-secondary btn-sm" onclick="AdminApp.viewStaffDetails('${s.userId}')" title="View Profile & Workload">
+                        View
+                      </button>
+                      <button class="btn btn-primary btn-sm" onclick="AdminApp.openEditStaffModal('${s.userId}')" title="Edit Profile Details">
+                        Edit
+                      </button>
+                      ${isActive
+                        ? `<button class="btn btn-danger btn-sm" onclick="AdminApp.toggleStaffStatus('${s.userId}', 'INACTIVE')" title="Deactivate Staff Account">Deactivate</button>`
+                        : `<button class="btn btn-success btn-sm" onclick="AdminApp.toggleStaffStatus('${s.userId}', 'ACTIVE')" title="Reactivate Staff Account">Reactivate</button>`}
+                    </div>
+                  </td>
+                </tr>
+              `;
+            }).join('');
+          }
         }
       };
 
@@ -738,11 +771,149 @@ const AdminApp = {
       const deptFilter = document.getElementById('filter-dept');
       if (deptFilter) deptFilter.addEventListener('change', render);
 
+      const statusFilter = document.getElementById('filter-status');
+      if (statusFilter) statusFilter.addEventListener('change', render);
+
       render();
 
     } catch (e) {
       console.error('Error loading staff page', e);
       UI.showToast('Unable to load staff list.', 'danger');
+    }
+  },
+
+  openAddStaffModal: function () {
+    const form = document.getElementById('add-staff-form');
+    if (form) form.reset();
+    UI.openModal('add-staff-modal');
+  },
+
+  handleAddStaffSubmit: async function (event) {
+    if (event) event.preventDefault();
+
+    const name = document.getElementById('add-staff-name')?.value.trim();
+    const username = document.getElementById('add-staff-username')?.value.trim();
+    const password = document.getElementById('add-staff-password')?.value;
+    const department = document.getElementById('add-staff-dept')?.value;
+    const phone = document.getElementById('add-staff-phone')?.value.trim() || '';
+
+    if (!name || !username || !password || !department) {
+      UI.showToast('Please fill in all mandatory fields.', 'warning');
+      return;
+    }
+
+    const btn = document.getElementById('btn-submit-add-staff');
+    if (btn) btn.classList.add('is-loading');
+
+    try {
+      const res = await API.post('/users/staff', {
+        name,
+        username,
+        password,
+        department,
+        phone
+      });
+
+      if (btn) btn.classList.remove('is-loading');
+
+      if (res.success) {
+        UI.closeModal('add-staff-modal');
+        UI.showToast(`Staff member ${name} created successfully!`, 'success');
+        await this.loadStaffCache(true);
+        this.initStaffPage();
+      } else {
+        UI.showToast(res.message || 'Failed to create staff member.', 'danger');
+      }
+    } catch (e) {
+      if (btn) btn.classList.remove('is-loading');
+      UI.showToast('Failed to create staff member due to server error.', 'danger');
+    }
+  },
+
+  openEditStaffModal: function (staffId) {
+    const staff = this.cachedStaff.find(s => s.userId === staffId);
+    if (!staff) {
+      UI.showToast('Staff member details not found.', 'danger');
+      return;
+    }
+
+    const idInput = document.getElementById('edit-staff-id');
+    const nameInput = document.getElementById('edit-staff-name');
+    const userInput = document.getElementById('edit-staff-username');
+    const deptSelect = document.getElementById('edit-staff-dept');
+    const phoneInput = document.getElementById('edit-staff-phone');
+
+    if (idInput) idInput.value = staff.userId;
+    if (nameInput) nameInput.value = staff.name;
+    if (userInput) userInput.value = staff.username;
+    if (deptSelect) deptSelect.value = staff.department || 'Other';
+    if (phoneInput) phoneInput.value = staff.phone || '';
+
+    UI.openModal('edit-staff-modal');
+  },
+
+  handleEditStaffSubmit: async function (event) {
+    if (event) event.preventDefault();
+
+    const staffId = document.getElementById('edit-staff-id')?.value.trim();
+    const name = document.getElementById('edit-staff-name')?.value.trim();
+    const department = document.getElementById('edit-staff-dept')?.value;
+    const phone = document.getElementById('edit-staff-phone')?.value.trim() || '';
+
+    if (!staffId || !name || !department) {
+      UI.showToast('Please complete all required fields.', 'warning');
+      return;
+    }
+
+    const btn = document.getElementById('btn-submit-edit-staff');
+    if (btn) btn.classList.add('is-loading');
+
+    try {
+      const res = await API.put(`/users/staff/${staffId}`, {
+        name,
+        department,
+        phone
+      });
+
+      if (btn) btn.classList.remove('is-loading');
+
+      if (res.success) {
+        UI.closeModal('edit-staff-modal');
+        UI.showToast(`Staff member ${staffId} updated successfully!`, 'success');
+        await this.loadStaffCache(true);
+        this.initStaffPage();
+      } else {
+        UI.showToast(res.message || 'Failed to update staff member.', 'danger');
+      }
+    } catch (e) {
+      if (btn) btn.classList.remove('is-loading');
+      UI.showToast('Failed to update staff member due to server error.', 'danger');
+    }
+  },
+
+  toggleStaffStatus: async function (staffId, newStatus) {
+    const actionText = newStatus === 'INACTIVE' ? 'deactivate' : 'reactivate';
+    const confirmMsg = `Are you sure you want to ${actionText} staff account (${staffId})?`
+      + (newStatus === 'INACTIVE' ? '\nDeactivated staff cannot log in or be assigned new complaints.' : '');
+
+    if (!confirm(confirmMsg)) {
+      return;
+    }
+
+    try {
+      const res = await API.put(`/users/staff/${staffId}/status`, {
+        status: newStatus
+      });
+
+      if (res.success) {
+        UI.showToast(`Staff account ${staffId} ${actionText}d successfully!`, 'success');
+        await this.loadStaffCache(true);
+        this.initStaffPage();
+      } else {
+        UI.showToast(res.message || `Failed to ${actionText} staff account.`, 'danger');
+      }
+    } catch (e) {
+      UI.showToast(`Failed to ${actionText} staff account due to server error.`, 'danger');
     }
   },
 
@@ -753,6 +924,8 @@ const AdminApp = {
     const complaints = this.cachedComplaints.filter(c => c.assignedStaffId === staffId);
     const modalBody = document.getElementById('staff-modal-body');
     if (!modalBody) return;
+
+    const isActive = (staff.status || 'ACTIVE').toUpperCase() === 'ACTIVE';
 
     modalBody.innerHTML = `
       <div class="detail-list">
@@ -771,6 +944,18 @@ const AdminApp = {
         <div class="detail-item">
           <div class="detail-label">Username</div>
           <div class="detail-value">${staff.username}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Contact Number</div>
+          <div class="detail-value">${staff.phone || 'N/A'}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Account Status</div>
+          <div class="detail-value">
+            ${isActive
+              ? '<span class="badge badge-status-resolved">Active</span>'
+              : '<span class="badge badge-priority-high">Inactive</span>'}
+          </div>
         </div>
       </div>
 

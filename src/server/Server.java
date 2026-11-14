@@ -13,6 +13,8 @@ import service.UserService;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
@@ -30,10 +32,29 @@ public class Server {
     private static final AssignmentService assignmentService = new AssignmentService();
     private static final ReportService reportService = new ReportService();
 
+    private static HttpServer runningServer;
+
     public static void main(String[] args) throws IOException {
+        int port = 8080;
+        if (args != null && args.length > 0) {
+            try {
+                port = Integer.parseInt(args[0]);
+            } catch (NumberFormatException ignored) {}
+        }
+        startServer(port);
+    }
 
-        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+    /**
+     * Starts the HTTP server on the specified port.
+     */
+    public static synchronized HttpServer startServer(int port) throws IOException {
+        if (runningServer != null) {
+            return runningServer;
+        }
 
+        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+
+        // Core API Endpoints
         server.createContext("/api/health", Server::healthCheck);
         server.createContext("/api/login", Server::login);
         server.createContext("/api/register", Server::register);
@@ -41,10 +62,26 @@ public class Server {
         server.createContext("/api/reports", Server::handleReports);
         server.createContext("/api/users", Server::handleUsers);
 
+        // Static Frontend Asset Serving (HTML, CSS, JS)
+        server.createContext("/", Server::handleStaticFiles);
+
         server.setExecutor(null);
         server.start();
 
-        System.out.println("Hostel Complaint System Backend started at http://localhost:8080");
+        runningServer = server;
+        System.out.println("Hostel Complaint System Backend started at http://localhost:" + port);
+        return server;
+    }
+
+    /**
+     * Stops the running HTTP server.
+     */
+    public static synchronized void stopServer() {
+        if (runningServer != null) {
+            runningServer.stop(0);
+            runningServer = null;
+            System.out.println("Hostel Complaint System Backend stopped.");
+        }
     }
 
     // -------------------------------------------------------------
@@ -58,7 +95,12 @@ public class Server {
             return;
         }
 
-        String json = "{\"status\":\"UP\",\"message\":\"Hostel Complaint System Backend is running.\"}";
+        boolean dbOk = database.DatabaseConnection.testConnection();
+        String json = "{"
+                + "\"status\":\"UP\","
+                + "\"database\":\"" + (dbOk ? "CONNECTED" : "DISCONNECTED") + "\","
+                + "\"message\":\"Hostel Complaint System Backend is running.\""
+                + "}";
         sendJsonResponse(exchange, 200, json);
     }
 
@@ -249,8 +291,8 @@ public class Server {
             }
 
             if (parts.length == 5 && parts[4].equalsIgnoreCase("assign")) {
-                // PUT /api/complaints/{complaintId}/assign
-                if (!method.equals("PUT")) {
+                // PUT or POST /api/complaints/{complaintId}/assign
+                if (!method.equals("PUT") && !method.equals("POST")) {
                     sendJsonResponse(exchange, 405, "{\"success\":false,\"message\":\"Method Not Allowed\"}");
                     return;
                 }
@@ -278,7 +320,6 @@ public class Server {
     }
 
     private static void handleGetAllComplaints(HttpExchange exchange, User caller) throws IOException {
-        // Admins can see all complaints. Students see their own. Staff see assigned.
         ArrayList<Complaint> list;
         if ("ADMIN".equalsIgnoreCase(caller.getRole())) {
             list = complaintService.getAllComplaints();
@@ -308,7 +349,7 @@ public class Server {
         String priorityStr = data.get("priority");
         String complaintId = data.get("complaintId");
 
-        // If caller is student, studentId must match caller ID
+        // Server-side authorization check: students cannot lodge complaints for another student
         if ("STUDENT".equalsIgnoreCase(caller.getRole())) {
             if (studentId == null || studentId.trim().isEmpty()) {
                 studentId = caller.getUserId();
@@ -426,7 +467,7 @@ public class Server {
                 return;
             }
 
-            complaintService.updateStatus(complaintId, newStatus);
+            complaintService.updateStatus(complaintId, newStatus, caller.getUserId());
             Complaint updated = complaintService.getComplaintById(complaintId);
             sendJsonResponse(exchange, 200, "{\"success\":true,\"message\":\"Complaint status updated successfully.\",\"complaint\":" + complaintToJson(updated) + "}");
 
@@ -490,8 +531,13 @@ public class Server {
             return;
         }
 
+        if (!staffUser.isActive()) {
+            sendJsonResponse(exchange, 400, "{\"success\":false,\"message\":\"Cannot assign complaint to inactive staff member.\"}");
+            return;
+        }
+
         try {
-            assignmentService.assignComplaint(complaintId, staffId.trim());
+            assignmentService.assignComplaint(complaintId, staffId.trim(), caller.getUserId());
             Complaint updated = complaintService.getComplaintById(complaintId);
             sendJsonResponse(exchange, 200, "{\"success\":true,\"message\":\"Complaint assigned successfully.\",\"complaint\":" + complaintToJson(updated) + "}");
 
@@ -576,20 +622,21 @@ public class Server {
     private static void handleUsers(HttpExchange exchange) throws IOException {
         if (handleCors(exchange)) return;
 
-        if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
-            sendJsonResponse(exchange, 405, "{\"success\":false,\"message\":\"Method Not Allowed\"}");
-            return;
-        }
-
         User caller = authenticateCaller(exchange);
         if (caller == null) {
             sendJsonResponse(exchange, 401, "{\"success\":false,\"message\":\"Authentication required.\"}");
             return;
         }
 
+        String method = exchange.getRequestMethod().toUpperCase();
         String path = exchange.getRequestURI().getPath();
 
-        if (path.endsWith("/students")) {
+        // 1. Students endpoint
+        if (path.equals("/api/users/students") || path.equals("/api/users/students/")) {
+            if (!method.equals("GET")) {
+                sendJsonResponse(exchange, 405, "{\"success\":false,\"message\":\"Method Not Allowed\"}");
+                return;
+            }
             if (!"ADMIN".equalsIgnoreCase(caller.getRole())) {
                 sendJsonResponse(exchange, 403, "{\"success\":false,\"message\":\"Access denied. Admin role required.\"}");
                 return;
@@ -599,14 +646,181 @@ public class Server {
             return;
         }
 
-        if (path.endsWith("/staff")) {
-            // Both ADMIN and authorized users can read staff list for display/assignment
-            ArrayList<Staff> staffList = userService.getStaffList();
-            sendJsonResponse(exchange, 200, usersToJson(staffList));
+        // 2. Staff collection endpoint (/api/users/staff)
+        if (path.equals("/api/users/staff") || path.equals("/api/users/staff/")) {
+            if (method.equals("GET")) {
+                String query = exchange.getRequestURI().getQuery();
+                boolean activeOnly = query != null && query.toLowerCase().contains("activeonly=true");
+                ArrayList<Staff> staffList = activeOnly ? userService.getActiveStaffList() : userService.getStaffList();
+                sendJsonResponse(exchange, 200, usersToJson(staffList));
+                return;
+            }
+
+            if (method.equals("POST")) {
+                if (!"ADMIN".equalsIgnoreCase(caller.getRole())) {
+                    sendJsonResponse(exchange, 403, "{\"success\":false,\"message\":\"Access denied. Only administrators can add staff accounts.\"}");
+                    return;
+                }
+
+                Map<String, String> data = readRequestBody(exchange);
+                String name = data.get("name");
+                String username = data.get("username");
+                String password = data.get("password");
+                String department = data.get("department");
+                String phone = data.get("phone");
+
+                try {
+                    Staff createdStaff = userService.createStaff(name, username, password, department, phone);
+                    sendJsonResponse(exchange, 201, "{\"success\":true,\"message\":\"Staff member created successfully.\",\"staff\":" + userToJson(createdStaff) + "}");
+                } catch (InvalidInputException e) {
+                    sendJsonResponse(exchange, 400, "{\"success\":false,\"message\":\"" + escapeJson(e.getMessage()) + "\"}");
+                } catch (Exception e) {
+                    sendJsonResponse(exchange, 500, "{\"success\":false,\"message\":\"Server error creating staff: " + escapeJson(e.getMessage()) + "\"}");
+                }
+                return;
+            }
+
+            sendJsonResponse(exchange, 405, "{\"success\":false,\"message\":\"Method Not Allowed\"}");
             return;
         }
 
+        // 3. Staff member item endpoints (/api/users/staff/{id} or /api/users/staff/{id}/status)
+        if (path.startsWith("/api/users/staff/")) {
+            String remainder = path.substring("/api/users/staff/".length());
+            String[] parts = remainder.split("/");
+
+            if (parts.length == 1 && !parts[0].trim().isEmpty()) {
+                String staffId = parts[0].trim();
+
+                if (method.equals("GET")) {
+                    User user = userService.findUserById(staffId);
+                    if (user == null || !"STAFF".equalsIgnoreCase(user.getRole())) {
+                        sendJsonResponse(exchange, 404, "{\"success\":false,\"message\":\"Staff member not found.\"}");
+                        return;
+                    }
+                    sendJsonResponse(exchange, 200, userToJson(user));
+                    return;
+                }
+
+                if (method.equals("PUT")) {
+                    if (!"ADMIN".equalsIgnoreCase(caller.getRole())) {
+                        sendJsonResponse(exchange, 403, "{\"success\":false,\"message\":\"Access denied. Only administrators can edit staff.\"}");
+                        return;
+                    }
+
+                    Map<String, String> data = readRequestBody(exchange);
+                    String name = data.get("name");
+                    String department = data.get("department");
+                    String phone = data.get("phone");
+
+                    try {
+                        boolean updated = userService.updateStaff(staffId, name, department, phone);
+                        if (updated) {
+                            User updatedStaff = userService.findUserById(staffId);
+                            sendJsonResponse(exchange, 200, "{\"success\":true,\"message\":\"Staff member updated successfully.\",\"staff\":" + userToJson(updatedStaff) + "}");
+                        } else {
+                            sendJsonResponse(exchange, 400, "{\"success\":false,\"message\":\"Failed to update staff member.\"}");
+                        }
+                    } catch (UserNotFoundException e) {
+                        sendJsonResponse(exchange, 404, "{\"success\":false,\"message\":\"" + escapeJson(e.getMessage()) + "\"}");
+                    } catch (InvalidInputException e) {
+                        sendJsonResponse(exchange, 400, "{\"success\":false,\"message\":\"" + escapeJson(e.getMessage()) + "\"}");
+                    } catch (Exception e) {
+                        sendJsonResponse(exchange, 500, "{\"success\":false,\"message\":\"Server error updating staff: " + escapeJson(e.getMessage()) + "\"}");
+                    }
+                    return;
+                }
+
+                sendJsonResponse(exchange, 405, "{\"success\":false,\"message\":\"Method Not Allowed\"}");
+                return;
+            }
+
+            if (parts.length == 2 && parts[1].equalsIgnoreCase("status")) {
+                String staffId = parts[0].trim();
+
+                if (method.equals("PUT")) {
+                    if (!"ADMIN".equalsIgnoreCase(caller.getRole())) {
+                        sendJsonResponse(exchange, 403, "{\"success\":false,\"message\":\"Access denied. Only administrators can change staff status.\"}");
+                        return;
+                    }
+
+                    Map<String, String> data = readRequestBody(exchange);
+                    String status = data.get("status");
+
+                    try {
+                        boolean updated = userService.setStaffStatus(staffId, status);
+                        if (updated) {
+                            User updatedStaff = userService.findUserById(staffId);
+                            sendJsonResponse(exchange, 200, "{\"success\":true,\"message\":\"Staff status updated successfully.\",\"staff\":" + userToJson(updatedStaff) + "}");
+                        } else {
+                            sendJsonResponse(exchange, 400, "{\"success\":false,\"message\":\"Failed to update staff status.\"}");
+                        }
+                    } catch (UserNotFoundException e) {
+                        sendJsonResponse(exchange, 404, "{\"success\":false,\"message\":\"" + escapeJson(e.getMessage()) + "\"}");
+                    } catch (InvalidInputException e) {
+                        sendJsonResponse(exchange, 400, "{\"success\":false,\"message\":\"" + escapeJson(e.getMessage()) + "\"}");
+                    } catch (Exception e) {
+                        sendJsonResponse(exchange, 500, "{\"success\":false,\"message\":\"Server error updating status: " + escapeJson(e.getMessage()) + "\"}");
+                    }
+                    return;
+                }
+
+                sendJsonResponse(exchange, 405, "{\"success\":false,\"message\":\"Method Not Allowed\"}");
+                return;
+            }
+        }
+
         sendJsonResponse(exchange, 404, "{\"success\":false,\"message\":\"Endpoint not found.\"}");
+    }
+
+    // -------------------------------------------------------------
+    // Static File Handler for Frontend
+    // -------------------------------------------------------------
+    private static void handleStaticFiles(HttpExchange exchange) throws IOException {
+        if (handleCors(exchange)) return;
+
+        String rawPath = exchange.getRequestURI().getPath();
+        if (rawPath.startsWith("/api/")) {
+            sendJsonResponse(exchange, 404, "{\"success\":false,\"message\":\"Endpoint not found.\"}");
+            return;
+        }
+
+        String relativePath = rawPath.equals("/") ? "index.html" : rawPath.substring(1);
+        File file = new File("frontend", relativePath);
+
+        // Security check against path traversal
+        File baseDir = new File("frontend").getCanonicalFile();
+        if (!file.getCanonicalFile().toPath().startsWith(baseDir.toPath()) || !file.exists() || file.isDirectory()) {
+            if (rawPath.equals("/")) {
+                sendJsonResponse(exchange, 404, "Frontend index.html not found.");
+            } else {
+                exchange.sendResponseHeaders(404, -1);
+                exchange.close();
+            }
+            return;
+        }
+
+        String mimeType = getMimeType(file.getName());
+        exchange.getResponseHeaders().set("Content-Type", mimeType);
+        exchange.sendResponseHeaders(200, file.length());
+
+        try (OutputStream os = exchange.getResponseBody();
+             FileInputStream fis = new FileInputStream(file)) {
+            fis.transferTo(os);
+        }
+    }
+
+    private static String getMimeType(String filename) {
+        String lower = filename.toLowerCase();
+        if (lower.endsWith(".html") || lower.endsWith(".htm")) return "text/html; charset=UTF-8";
+        if (lower.endsWith(".css")) return "text/css; charset=UTF-8";
+        if (lower.endsWith(".js")) return "application/javascript; charset=UTF-8";
+        if (lower.endsWith(".json")) return "application/json; charset=UTF-8";
+        if (lower.endsWith(".png")) return "image/png";
+        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
+        if (lower.endsWith(".svg")) return "image/svg+xml";
+        if (lower.endsWith(".ico")) return "image/x-icon";
+        return "application/octet-stream";
     }
 
     // -------------------------------------------------------------
@@ -669,7 +883,6 @@ public class Server {
 
     private static Map<String, String> readRequestBody(HttpExchange exchange) throws IOException {
         String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8).trim();
-        String contentType = exchange.getRequestHeaders().getFirst("Content-Type");
 
         if (body.isEmpty()) {
             return new HashMap<>();
@@ -869,7 +1082,9 @@ public class Server {
         sb.append("\"userId\":\"").append(escapeJson(u.getUserId())).append("\",");
         sb.append("\"name\":\"").append(escapeJson(u.getName())).append("\",");
         sb.append("\"username\":\"").append(escapeJson(u.getUsername())).append("\",");
-        sb.append("\"role\":\"").append(escapeJson(u.getRole())).append("\"");
+        sb.append("\"role\":\"").append(escapeJson(u.getRole())).append("\",");
+        sb.append("\"status\":\"").append(escapeJson(u.getStatus())).append("\",");
+        sb.append("\"phone\":\"").append(escapeJson(u.getPhone())).append("\"");
 
         if (u instanceof Student) {
             sb.append(",\"roomNumber\":\"").append(escapeJson(((Student) u).getRoomNumber())).append("\"");

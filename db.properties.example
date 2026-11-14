@@ -1,0 +1,6 @@
+# Database Configuration Example
+# Copy this file to 'db.properties' and fill in your credentials
+
+DB_URL=jdbc:mysql://localhost:3306/hostel_complaint_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+DB_USERNAME=root
+DB_PASSWORD=your_password_here
